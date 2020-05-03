@@ -76,8 +76,12 @@ class Node:
         self.parents = list(parents or [])
         self.id = str(node_id) if node_id is not None else None
         self.uuid = node_uuid or uuid.uuid4().hex
-        self.children: List[Node] = []
+        self._children: List[Node] = []
         self.state = NodeState.CREATED
+
+    @property
+    def children(self):
+        return tuple(self._children)
 
     def as_dict(self):
         """Convert this node to a plain literal representation"""
@@ -157,7 +161,7 @@ class DUITree:
             self.nodes[node.id] = node
             # Wire up the parent links
             for parent in node.parents:
-                parent.children.append(node)
+                parent._children.append(node)
             # Track roots
             if not node.parents:
                 self._roots.append(node)
