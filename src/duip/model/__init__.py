@@ -4,7 +4,7 @@ import uuid
 from enum import Enum, auto
 from io import StringIO
 from threading import Lock
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import networkx as nx
 
@@ -62,51 +62,22 @@ class Node:
     Node can have several parents.
 
     Args:
-        tree: The DUI tree object this belongs to
         parents: List of parent nodes
         node_id: The tree-ID node, if known. If this is duplicate in the
             context of the tree, an exception will be thrown
         node_uuid: The UUID for this node. Will be generated if unspecified
+        tree: The DUI tree object this will belong to
     """
 
     def __init__(
-        self,
-        tree: DUITree,
-        parents: List[Node] = None,
-        node_id: str = None,
-        node_uuid: str = None,
+        self, parents: List[Node] = None, *, node_id: str = None, node_uuid: str = None,
     ):
-        self.tree = tree
+        self.tree: Optional[DUITree] = None
         self.parents = list(parents or [])
         self.id = str(node_id) if node_id is not None else None
         self.uuid = node_uuid or uuid.uuid4().hex
-        self.children = []
+        self.children: List[Node] = []
         self.state = NodeState.CREATED
-
-        tree.add_node(self)
-
-    # def attach_to(self, tree: DUITree, parents: List[Node]):
-    #     """
-    #     Attach this node to a node tree
-
-    #     Args:
-    #         tree: The tree object to attach to
-    #         parents: The list of parent nodes in that tree
-    #         node_id: The tree-local ID to use for the node
-    #     """
-    #     assert node_id, "Node ID must have value"
-    #     assert node_id not in tree.nodes, f"Tree already has a node with id {node_id}"
-
-    #     self.tree = tree
-    #     tree.nodes[node_id] = self
-
-    #     # synchronize the children pointers
-    #     self.parents = list(parents)
-    #     for parent in parents:
-    #         assert (
-    #             self not in parent.children
-    #         ), "Parent already has this node as a child"
-    #         parent.children.append(self)
 
     def as_dict(self):
         """Convert this node to a plain literal representation"""
@@ -130,11 +101,11 @@ class Node:
         node_id = data["id"]
         node_uuid = data["uuid"]
         # DAG, so we can assume that parents are made before children
-        parents = [tree[parent_id] for parent_id in data.get("parents", [])]
+        parents = [tree.nodes[parent_id] for parent_id in data.get("parents", [])]
         # The constructor recreates all the links
-        node = cls(node_uuid)
-        node.attach_to(tree, parents, node_id)
+        node = cls(parents=parents, node_id=node_id, node_uuid=node_uuid)
         node.state = NodeState(data["STATE"])
+        tree.attach(node)
 
         return node
 
@@ -151,7 +122,14 @@ class DUITree:
         self._lock = Lock()
         self._roots = []
 
-    def add_node(self, node: Node):
+    def attach(self, node: Node) -> Node:
+        """Attach a Node to this tree.
+
+        If it has an .id, it will be used, if it doesn't already exist,
+        otherwise it will have one assigned.
+
+        Returns the node.
+        """
         # Validate first before changing anything
         if node.id in self.nodes:
             raise DuplicateKeyError(f"Node id {node.id} already exists in tree")
@@ -175,6 +153,7 @@ class DUITree:
             if node.id is None:
                 node.id = str(self._next_id)
                 self._next_id += 1
+            node.tree = self
             self.nodes[node.id] = node
             # Wire up the parent links
             for parent in node.parents:
@@ -182,6 +161,8 @@ class DUITree:
             # Track roots
             if not node.parents:
                 self._roots.append(node)
+
+        return node
 
     def as_dict(self):
         return {node_id: node.as_dict() for node_id, node in self.nodes.items()}

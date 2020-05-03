@@ -8,25 +8,24 @@ def test_node_types():
 
 def test_node_creation_manipulation():
     tree = DUITree()
-    nodeA = Node(tree, [])
+    nodeA = tree.attach(Node())
     assert nodeA.id
     assert nodeA in tree.nodes.values()
-    nodeB = Node(tree, [nodeA])
+    nodeB = tree.attach(Node([nodeA]))
     assert nodeB.id != nodeA.id
     assert nodeB in nodeA.children
     assert nodeA in nodeB.parents
     # Try creating with duplicate id
     with pytest.raises(DuplicateKeyError):
-        Node(tree, [], node_id="1")
+        tree.attach(Node(node_id=nodeA.id))
     # And duplicate UUID...
     with pytest.raises(DuplicateKeyError):
-        Node(tree, [], node_uuid=nodeA.uuid)
+        tree.attach(Node([], node_uuid=nodeA.uuid))
 
-    tree2 = DUITree()
-    node_other = Node(tree2, node_id="-424242")
+    node_other = Node(node_id="-424242")
     with pytest.raises(KeyError):
-        Node(tree, [node_other])
+        tree.attach(Node(parents=[node_other]))
 
-    Node(tree, [nodeA])
-    Node(tree, [])
+    tree.attach(Node([nodeA]))
+    tree.attach(Node())
     print("\n" + tree.render_graph())
