@@ -5,11 +5,14 @@ description = ""
 authors = ["Nicholas Devenish <ndevenish@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.7"
 flask = "^1.1.2"
+networkx = "^2.4"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
+flake8 = "^3.7.9"
+isort = "^4.3.21"
 
 [tool.black]
 include='\.pyi?$|/SConscript$|/libtbx_config$'
