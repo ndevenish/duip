@@ -4,7 +4,7 @@ import uuid
 from enum import Enum, auto
 from io import StringIO
 from threading import Lock
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Sequence, Union
 
 import networkx as nx
 
@@ -62,7 +62,7 @@ class Node:
     Node can have several parents.
 
     Args:
-        parents: List of parent nodes
+        parents: Either a parent node, or a list of parent nodes
         node_id: The tree-ID node, if known. If this is duplicate in the
             context of the tree, an exception will be thrown
         node_uuid: The UUID for this node. Will be generated if unspecified
@@ -70,10 +70,21 @@ class Node:
     """
 
     def __init__(
-        self, parents: List[Node] = None, *, node_id: str = None, node_uuid: str = None,
+        self,
+        parents: Union[Sequence[Node], Node] = None,
+        *,
+        node_id: str = None,
+        node_uuid: str = None,
     ):
         self.tree: Optional[DUITree] = None
-        self.parents = list(parents or [])
+        # Handle non-list parents
+        if parents is not None:
+            if isinstance(parents, Sequence):
+                self.parents = list(parents)
+            else:
+                self.parents = [parents]
+        else:
+            self.parents = []
         self.id = str(node_id) if node_id is not None else None
         self.uuid = node_uuid or uuid.uuid4().hex
         self._children: List[Node] = []
@@ -85,13 +96,15 @@ class Node:
 
     def as_dict(self):
         """Convert this node to a plain literal representation"""
-        return {
+        out = {
             "type": type(self).__name__,
-            "id": self._id,
+            "id": self.id,
             "uuid": self.uuid,
-            "parents": [p.id for p in self.parents],
             "state": self.state.value,
         }
+        if self.parents:
+            out["parents"] = [p.id for p in self.parents]
+        return out
 
     @classmethod
     def from_dict(cls, tree: DUITree, data: Dict):
@@ -169,7 +182,7 @@ class DUITree:
         return node
 
     def as_dict(self):
-        return {node_id: node.as_dict() for node_id, node in self.nodes.items()}
+        return [node.as_dict() for node_id, node in self.nodes.items()]
 
     @classmethod
     def from_dict(self, data):

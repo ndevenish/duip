@@ -15,6 +15,9 @@ def test_node_creation_manipulation():
     assert nodeB.id != nodeA.id
     assert nodeB in nodeA.children
     assert nodeA in nodeB.parents
+    nodeC = tree.attach(Node(nodeA))
+    assert nodeC in nodeA.children
+    assert nodeC.parents == [nodeA]
     # Try creating with duplicate id
     with pytest.raises(DuplicateKeyError):
         tree.attach(Node(node_id=nodeA.id))
@@ -28,4 +31,14 @@ def test_node_creation_manipulation():
 
     tree.attach(Node([nodeA]))
     tree.attach(Node())
+
+    # Test this briefly
     print("\n" + tree.render_graph())
+
+
+def test_to_from_dict():
+    tree = DUITree()
+    nodeA = tree.attach(Node())
+    tree.attach(Node([nodeA]))
+
+    print(tree.as_dict())
