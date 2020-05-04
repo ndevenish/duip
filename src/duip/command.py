@@ -2,6 +2,8 @@
 Command implementations, registration and views
 """
 
+from typing import Dict
+
 from flask import Blueprint, jsonify, url_for
 
 
@@ -19,7 +21,7 @@ class Command:
     name: str
 
 
-COMMANDS = {}
+COMMANDS: Dict[str, Command] = {}
 
 command_endpoints = Blueprint("commands", __name__)
 
