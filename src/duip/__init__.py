@@ -2,6 +2,7 @@ from pathlib import Path
 
 from flask import Flask
 
+from .command import command_endpoints
 from .node import node_endpoints
 
 __version__ = "0.1.0"
@@ -26,9 +27,6 @@ def create_app(test_config=None):
     app.logger.info(f"Instance path: {app.instance_path}")
 
     app.register_blueprint(node_endpoints, url_prefix="/node")
-
-    @app.route("/")
-    def hello():
-        return "Hello, world"
+    app.register_blueprint(command_endpoints, url_prefix="/command")
 
     return app
