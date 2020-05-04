@@ -16,6 +16,7 @@ class DuplicateKeyError(Exception):
 
 
 def register_node(node_subclass):
+    """Decorator to register a node subclass"""
     NODE_TYPES[node_subclass.__name__] = node_subclass
     return node_subclass
 
@@ -94,7 +95,7 @@ class Node:
     def children(self):
         return tuple(self._children)
 
-    def as_dict(self):
+    def to_dict(self):
         """Convert this node to a plain literal representation"""
         out = {
             "type": type(self).__name__,
@@ -181,8 +182,8 @@ class DUITree:
 
         return node
 
-    def as_dict(self):
-        return [node.as_dict() for node_id, node in self.nodes.items()]
+    def to_dict(self):
+        return [node.to_dict() for node_id, node in self.nodes.items()]
 
     @classmethod
     def from_dict(self, data):
