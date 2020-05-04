@@ -2,7 +2,7 @@ from pathlib import Path
 
 from flask import Flask
 
-from .node.routes import node_endpoints
+from .node import node_endpoints
 
 __version__ = "0.1.0"
 

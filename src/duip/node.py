@@ -1,11 +1,12 @@
 from duip.model import DUITree
-from flask import abort, g, jsonify
-
-from .routes import node_endpoints
+from flask import Blueprint, abort, g, jsonify
 
 # For now, store this globally on a per-process instance
 # This isn't... a good way, but for now keeps the model super simple
 _TREE = None
+
+
+node_endpoints = Blueprint("node", __name__)
 
 
 def init_tree():
