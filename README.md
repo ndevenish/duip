@@ -20,6 +20,11 @@ future.
 Basic plan/mapping out of potential endpoints. Since we only run one instance
 for now, we can have everything be in the same namespace - (in future we could
 register this as a sub-namespace potentially with auth, e.g. `/dui/:tree_id/....`
+There are only two endpoints that alter data on the server. These are the
+`POST command/:name` to run a new command, and the `DELETE /task/..` command to
+cancel a running task. Multi-step operations (such as refine_lattice reindexing)
+can be implemented by getting the results for a stage, and then submitting a
+further "reindex" command, so don't need special endpoints.
 
 | Endpoint                  | Purpose
 | ------------------------- | ----------------
@@ -54,12 +59,7 @@ validate that it matches the local expectation. An example response:
   "uuid": "7feeec5cd99d464b8c841c668115be1f",
   "state": "CREATED",
   "parameters": { ... params ...},
-  "task": {
-      "id": "<id>",
-      "cancel": "<endpoint>",
-      "status": "<endpoint>",
-      ...
-  }
+  "task": "/task/<id>"
 }
 ```
 Common properties on a node are:
@@ -71,7 +71,7 @@ Common properties on a node are:
 | `uuid`    | A UUID for this node. This allows nodes to be created by the client before being assigned an ID
 | `state`   | The current node state. This can be `CREATED`, `RUNNING`, `FAILED` or `SUCCESS`
 | `params`  | The parameters that were submitted to create this node
-| `task`    | IF the node has an associated task then this is the task dictionary
+| `task`    | IF the node has an associated task then this is the task status endpoint
 
 ```
 GET /node/:id/experiments
@@ -132,36 +132,36 @@ the PHIL options for the command (either as a PHIL scope or some internal
 translation, yet to be decided), e.g. everything needed to know how to present
 the command to the user. You could build the DUI Simple/Advanced tab using this.
 
+*Note:* Command needn't map directly to dials commands. Likewise, the parameters
+don't have to be command-line PHIL parameters. So e.g. there could be a command
+`generate_and_apply_mask` that takes the new mask definition, and behind the
+scenes, coordinates the generation and application of mask parameters. This
+means that the server isn't just a thing wrapper over running DIALS commands.
+
 ```
 POST /command/:name
 ```
-Instruct the server to run a command. Responds with `202 (Accepted)` for success,
-as all node processing will be done asynchronously on the server. This will return
-a response of the form:
+Instruct the server to run a command. Responds with either `200 (OK)` for
+immediately processed nodes, or `202 (Accepted)` for success with node
+processing to be done asynchronously on the server. This will be return a
+response of the form:
 ```
 Status: 202 Accepted
 ---
 {
     "id": "find_spots",
     "node": {
-        "id": ":id",
+        "id": "<new_id>",
         ...node...,
-        "task_state": {
-            "cancel": "<endpoint>",
-            "status": "<endpoint>",
-        }
+        "task": "/task/<id>"
     }
 }
 ```
 The new node object will be returned, which will include a permanent tree ID.
-The node will have a `task_state` field entry, with links to a cancel endpoint
-and a status endpoint. Sending a `GET` request to the status endpoint will
-return a status object and a `202` response if the task is still in progress.
-If the task has completed, then a `200` will be returned.
-
-It is intended that this endpoint will become a streaming endpoint to get JIT
-updates for the status of a task; so that the client can be responsive. This is
-not yet implemented.
+If the node has an associated task job, then the node will have a `task` field
+entry. Sending a `GET` request to the task status endpoint will return a status
+object and a `202` response if the task is still in progress. If the task has
+completed, then a `200` will be returned.
 
 ## Tasks
 
@@ -177,4 +177,20 @@ if the task is still in progress, otherwise it will be `200 (OK)` if the task
 has completed (even if the task failed or was cancelled). It's possible that
 you might have a stale task link for an old task or instance of the task; the
 status will return a `404 Not Found` response in these cases, at which point
-you should refresh the task associations for a 
+you should refresh the task associations.
+
+The form of the task information dictionary is:
+```
+{
+    "id": "<task id>",
+    "cancel": "<cancel endpoint>
+}
+```
+
+Sending an HTTP `DELETE` request to the cancel endpoint will attempt to cancel
+a running task. Either `200 OK` will be returned, or a `409 Conflict` if the
+task has already completed.
+
+It is intended that this endpoint will become a streaming endpoint to get JIT
+updates for the status of a task; so that the client can be responsive. This is
+not yet implemented.
