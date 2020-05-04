@@ -41,4 +41,4 @@ def test_to_from_dict():
     nodeA = tree.attach(Node())
     tree.attach(Node([nodeA]))
 
-    print(tree.as_dict())
+    print(tree.to_dict())
