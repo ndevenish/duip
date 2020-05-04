@@ -26,7 +26,7 @@ def _render_graph(stream, node: Node, indent: str = "", last=True, first=True):
         first_i = ""
         second_i = ""
     elif last:
-        first_i = "└─"
+        first_i = "╰─"
         second_i = "  "
     else:
         first_i = "├─"
