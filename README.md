@@ -25,14 +25,15 @@ future.
 
 ## Endpoints Summary
 
-Basic plan/mapping out of potential endpoints. Since we only run one instance
-for now, we can have everything be in the same namespace - (in future we could
-register this as a sub-namespace potentially with auth, e.g. `/dui/:tree_id/....`
-There are only two endpoints that alter data on the server. These are the
-`POST command/:name` to run a new command, and the `DELETE /task/..` command to
-cancel a running task. Multi-step operations (such as refine_lattice reindexing)
-can be implemented by getting the results for a stage, and then submitting a
-further "reindex" command, so don't need special endpoints.
+Basic **plan** (read: not all implemented yet, this is a design)/mapping out of
+potential endpoints. Since we only run one instance for now, we can have
+everything be in the same namespace - (in future we could register this as a
+sub-namespace potentially with auth, e.g. `/dui/:tree_id/....` There are only
+two endpoints that alter data on the server. These are the `POST command/:name`
+to run a new command, and the `DELETE /task/..` command to cancel a running
+task. Multi-step operations (such as refine_lattice reindexing) can be
+implemented by getting the results for a stage, and then submitting a further
+"reindex" command, so don't need special endpoints.
 
 | Endpoint                      | Purpose
 | ----------------------------- | ----------------
