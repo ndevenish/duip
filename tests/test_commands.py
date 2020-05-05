@@ -15,10 +15,11 @@ def test_node_list(client, monkeypatch):
 
 
 def test_get_all_commands(client):
+    command.init_commands()
     commands = json.loads(client.get("/command/").data)
     assert commands
-    for name, command_endpoint in commands:
+    for name, command_endpoint in commands.items():
         resp = client.get(command_endpoint)
         assert resp.status_code == 200
         info = json.loads(resp.data)
-        assert info.name == name
+        assert info["name"] == name

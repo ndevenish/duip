@@ -12,6 +12,14 @@ the active model in memory rather than abstracted out to a database or similar.
 This should be developed with the expectation that this might change in the
 future.
 
+## Getting started
+
+1. Get [Poetry](https://github.com/python-poetry/poetry)
+2. `git clone` this repository and `cd` to it
+3. `poetry install`
+4. `poetry run pytest`
+5. `poetry run flask run`
+6. `curl localhost:5000/command`
 
 # API Documentation
 
@@ -26,18 +34,18 @@ cancel a running task. Multi-step operations (such as refine_lattice reindexing)
 can be implemented by getting the results for a stage, and then submitting a
 further "reindex" command, so don't need special endpoints.
 
-| Endpoint                  | Purpose
-| ------------------------- | ----------------
-| `/node`                   | Get the list of all nodes (to reconstruct a tree)
-| `/node/:id`               | Get the node state for a single node
-| `/node/:id/experiments`   | Get the experiment lists for a node
-| `/node/:id/reflections`   | Get the reflection list for a node
-| `/node/:id/log`           | Returns the streamlog file for a node
-| `/node/:id/report`        | Returns the HTML dials report for a stage
-| `/command`                | Get the list of commands that can be run
-| `/command/:name`          | Get details about a command and it's options
-| `POST /command/:name`     | Run a command. Pass arguments including parent node(s), run options
-| `/tasks/....`             | Task control interface. Get lists of running tasks, states and cancel
+| Endpoint                      | Purpose
+| ----------------------------- | ----------------
+| `GET /node`                   | Get the list of all nodes (to reconstruct a tree)
+| `GET /node/:id`               | Get the node state for a single node
+| `GET /node/:id/experiments`   | Get the experiment lists for a node
+| `GET /node/:id/reflections`   | Get the reflection list for a node
+| `GET /node/:id/log`           | Returns the streamlog file for a node
+| `GET /node/:id/report`        | Returns the HTML dials report for a stage
+| `GET /command`                | Get the list of commands that can be run
+| `GET /command/:name`          | Get details about a command and it's options
+| `POST /command/:name`         | Run a command. Pass arguments including parent node(s), run options
+| `/tasks/....`                 | Task control interface. Get lists of running tasks, states and cancel
 
 ## Node
 
@@ -113,6 +121,11 @@ Returns a list of commands endpoints. This is of the form:
     ...
 }
 ```
+If you pass a node ID argument e.g. `GET /command?node=:node` then it will
+only return a list of commands suitable for running after a particular node.
+(note: Unsure if this is the best place to do this, or if this should be
+handled by the server at all - but knowing the state of the physical tree and
+what files are present probably useful for implementing this)
 
 ```
 GET /command/:command

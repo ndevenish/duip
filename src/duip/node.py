@@ -37,7 +37,7 @@ class TreeController:
         return self.tree.nodes[node_id]
 
 
-@node_endpoints.route("/")
+@node_endpoints.route("/", strict_slashes=False)
 def all_nodes():
     tree = get_tree()
     return jsonify(tree.tree.to_dict())

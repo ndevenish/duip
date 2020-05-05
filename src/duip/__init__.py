@@ -2,8 +2,8 @@ from pathlib import Path
 
 from flask import Flask
 
-from .command import command_endpoints
-from .node import node_endpoints
+from .command import command_endpoints, init_commands
+from .node import init_tree, node_endpoints
 
 __version__ = "0.1.0"
 
@@ -25,6 +25,10 @@ def create_app(test_config=None):
     # We might want to use this for DUI data files?
     Path(app.instance_path).mkdir(exist_ok=True)
     app.logger.info(f"Instance path: {app.instance_path}")
+
+    with app.app_context():
+        init_tree()
+        init_commands()
 
     app.register_blueprint(node_endpoints, url_prefix="/node")
     app.register_blueprint(command_endpoints, url_prefix="/command")
