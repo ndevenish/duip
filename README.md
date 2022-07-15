@@ -45,7 +45,7 @@ implemented by getting the results for a stage, and then submitting a further
 | `GET /node/:id/report`        | Returns the HTML dials report for a stage
 | `GET /command`                | Get the list of commands that can be run
 | `GET /command/:name`          | Get details about a command and it's options
-| `POST /command/:name`         | Run a command. Pass arguments including parent node(s), run options
+| `POST /node`                  | Create a node, running a command. Pass arguments including parent node(s), run options
 | `/tasks/....`                 | Task control interface. Get lists of running tasks, states and cancel
 
 ## Node
@@ -68,7 +68,9 @@ validate that it matches the local expectation. An example response:
   "uuid": "7feeec5cd99d464b8c841c668115be1f",
   "state": "CREATED",
   "parameters": { ... params ...},
+  "command": "/command/<name>",
   "task": "/task/<id>"
+  "parents": ["/node/0", ...]
 }
 ```
 Common properties on a node are:
@@ -80,7 +82,9 @@ Common properties on a node are:
 | `uuid`    | A UUID for this node. This allows nodes to be created by the client before being assigned an ID
 | `state`   | The current node state. This can be `CREATED`, `RUNNING`, `FAILED` or `SUCCESS`
 | `params`  | The parameters that were submitted to create this node
-| `task`    | IF the node has an associated task then this is the task status endpoint
+| `task`    | IF the node has an associated task then this is the task status endpoint, if the node is still running.
+| `parents` | A list of parent nodes for this one, by endpoint
+| `command` | The command this node executed, or is executing.
 
 ```
 GET /node/:id/experiments
@@ -108,6 +112,27 @@ GET /node/:id/log[?offset=<int>]
 Gets the log file for a node. Accepts optional argument `offset`, which will
 cause a partial return of the logfile equivalent to seeking to that position
 in the file first. This allows partial loading of very large log files.
+
+```
+POST /node
+```
+Create a node, and execute the command. Returns 
+
+Accepts a dictionary in the same form returned by the node query endpoint e.g.
+```
+{
+  "uuid": "7feeec5cd99d464b8c841c668115be1f",
+  "parameters": { ... params ...},
+  "task": "/task/<id>"
+}
+```
+With the following field caveats:
+| Property  | Description
+| --------- | ---------------
+| `type`    | The kind of node, e.g. the sort of operation it represents
+| `id`      | Create the node with this ID. Fails with a 400 code if this already exists
+| `state`   | Anything other than `CREATED` is not currently supported and will return a 400.
+
 
 ## Command
 
