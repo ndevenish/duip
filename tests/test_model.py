@@ -1,4 +1,5 @@
 import pytest
+
 from duip.model import NODE_TYPES, DUITree, DuplicateKeyError, Node
 
 
