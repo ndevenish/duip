@@ -1,6 +1,7 @@
+from flask import json
+
 from duip.model import Node
 from duip.node import get_tree
-from flask import json
 
 
 def test_node_list(app, client):
@@ -8,7 +9,9 @@ def test_node_list(app, client):
     with app.app_context():
         tree = get_tree()
         assert tree is get_tree()
-        resp = client.get("/node/",)
+        resp = client.get(
+            "/node/",
+        )
         assert resp.status_code == 200
         assert json.loads(resp.data) == []
 

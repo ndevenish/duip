@@ -1,5 +1,6 @@
-from duip import command
 from flask import json
+
+from duip import command
 
 
 class FakeCommand(command.Command):

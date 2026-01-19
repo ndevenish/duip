@@ -1,5 +1,6 @@
-from duip.model import DUITree
 from flask import Blueprint, abort, g, jsonify
+
+from duip.model import DUITree
 
 # For now, store this globally on a per-process instance
 # This isn't... a good way, but for now keeps the model super simple
